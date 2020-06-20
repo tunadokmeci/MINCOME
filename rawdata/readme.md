@@ -1,4 +1,4 @@
-base_pay.data_revised.xlsx is the data file Gregory Mason sent us, which is the last updated version of the Baseline-Payments data that can be found here : https://dataverse.lib.umanitoba.ca/dataset.xhtml?persistentId=doi:10.5203/FK2/R5YA5B
+base_pay.data_revised.xlsx is the data file Gregory Mason from University of Manitoba sent us, which is the last updated version of the Baseline-Payments data that can be found here : https://dataverse.lib.umanitoba.ca/dataset.xhtml?persistentId=doi:10.5203/FK2/R5YA5B
  
 On the file sent by Prof. Mason, we have changed the variable names to make clear which ones referred to the male householder, 
 and which ones referred to the female householder. This data is organized as cross-section, so that for each household we have one obserrvation, but variable values for 37 months. 
