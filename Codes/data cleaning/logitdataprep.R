@@ -2,20 +2,9 @@ library("haven")
 library("dplyr")
 library("tidyr") 
 library("tidyverse")
-library("lubridate") 
-library("data.table")
 library("foreign")
 library("haven")
-library("quantmod") 
-library("zoo")
-library("plm")
-library("gplots")
-library("stargazer")
-library("lfe")
-library("Hmisc")
 library("readxl")
-library("naniar")
-library("strex")
 
 #basepaypanel_revised.dta is the data we obtained after turning the initial data to a panel data from cross section format
 #on Stata 
@@ -29,18 +18,56 @@ basepaypanel$individual <- 0
 basepaypanel$individual[basepaypanel$DoubleHead1== 0 & basepaypanel$SingleHead1 == 0] <- 1
 
 #only have Winnipeg 
-
 basepaypanel <- basepaypanel[which(basepaypanel$SiteCode == 1),]
+#get the information on the treatment cell of the household
 
+basepaypanel$AC <- as.character(basepaypanel$AC)
+basepaypanel$plan <- substr(basepaypanel$AC, 1, 1)
+basepaypanel$incbracket <- substr(basepaypanel$AC, 2, 3)
+basepaypanel$incbracket <- as.numeric(as.character(basepaypanel$incbracket)) 
+
+
+#Plan 6 was merged with plan 7 at some point
+basepaypanel$plan[basepaypanel$plan == 6] <- 7
+
+#have a control dummy, 0 for treated, 1 for control group 
+basepaypanel$control = 0 
+basepaypanel$control[basepaypanel$plan == 9] <- 1
+
+basepaypanel$treated = 0 
+basepaypanel$treated[basepaypanel$control == 0] <- 1
+
+#by eliminating the NAs, we are removing the months for each household 
+#where they were not enrolled in the experiment 
+basepaypanel <- basepaypanel[!is.na(basepaypanel$plan), ]
+
+basepaypanel$plan <- as.numeric(basepaypanel$plan)
+
+#month1 will then be 1 if that is the month where the family has begun 
+#the experiment
 basepaypanel <- basepaypanel %>%
   group_by(FamNum) %>%
   arrange(month)  %>%
-  mutate(prevnrch = dplyr::lag(CH, 1))  %>%
+  mutate(month1 = row_number())  %>%
   ungroup()%>%
   arrange(FamNum, month)
 
+basepaypanel <- basepaypanel %>%
+  group_by(FamNum) %>%
+  arrange(month1)  %>%
+  mutate(prevnrch = dplyr::lag(CH, 1))  %>%
+  ungroup()%>%
+  arrange(FamNum, month1)
+
 basepaypanel$increase = 0 
 basepaypanel$increase[basepaypanel$prevnrch < basepaypanel$CH] <- 1
+
+#dummy if increase happened within the first nine months, to be used as a control later 
+basepaypanel$birth9 <- 0
+basepaypanel$birth9[basepaypanel$month1 < 9 & basepaypanel$increase == 1] <- 1
+
+#exclude the birth that happened within the first nine months of the experiement 
+basepaypanel$increase[basepaypanel$month1 < 9] <- 0
 
 #have a dummy that indicates if there has been any increases
 
@@ -55,46 +82,18 @@ for (i in levels(basepaypanel$FamNum)){
 basepaypanel$if_increase = 0   
 basepaypanel$if_increase[basepaypanel$sum != 0] <- 1
 
-#get the information on the treatment cell of the household
+#same way to have an indicator if birth has happened within the first 9 months 
 
-basepaypanel$AC <- as.character(basepaypanel$AC)
-basepaypanel$plan <- substr(basepaypanel$AC, 1, 1)
-basepaypanel$incbracket <- substr(basepaypanel$AC, 2, 3)
-basepaypanel$incbracket <- as.numeric(as.character(basepaypanel$incbracket)) 
+basepaypanel$tot = 0
 
-#by eliminating the NAs, we are removing the months for each household 
-#where they were not enrolled in the experiment 
-basepaypanel <- basepaypanel[!is.na(basepaypanel$plan),]
+basepaypanel$FamNum <- as.factor(basepaypanel$FamNum)
+for (i in levels(basepaypanel$FamNum)){
+  s <- sum(basepaypanel[basepaypanel$FamNum == i, "birth9"])
+  basepaypanel$tot[basepaypanel$FamNum == i] <- s
+}
 
-basepaypanel$plan <- as.numeric(basepaypanel$plan)
-
-
-#month1 will then be 1 if that is the month where the family has begun 
-#the experiment
-basepaypanel <- basepaypanel %>%
-  group_by(FamNum) %>%
-  arrange(month)  %>%
-  mutate(month1 = row_number())  %>%
-  ungroup()%>%
-  arrange(FamNum, month)
-
-#dummy if increase happened within the first nine months, to be used as a control later 
-
-
-
-#exclude the birth that happened within the first nine months of the experiement 
-basepaypanel$increase[basepaypanel$month1 < 9] <- 0
-
-
-#Plan 6 was merged with plan 7 at some point
-basepaypanel$plan[basepaypanel$plan == 6] <- 7
-
-#have a control dummy, 0 for treated, 1 for control group 
-basepaypanel$control = 0 
-basepaypanel$control[basepaypanel$plan == 9] <- 1
-
-basepaypanel$treated = 0 
-basepaypanel$treated[basepaypanel$control == 0] <- 1
+basepaypanel$if_birth9 = 0   
+basepaypanel$if_birth9[basepaypanel$tot != 0] <- 1
 
 #there are families whose treament plan changes 
 #and even whether they are in control group or not 
@@ -132,7 +131,7 @@ basepaypanel_rem <- basepaypanel_rem[which(basepaypanel_rem$if_change == 0),]
 
 basepaypanel_rem <- basepaypanel_rem %>%
   group_by(FamNum)%>%
-  summarise(if_birth = mean(if_increase), if_birth9 = mean(if_increase9)
+  summarise(if_birth = mean(if_increase), if_birth9 = mean(if_birth9), 
             plan = mean(plan), incbracket = mean(incbracket), 
             treated = mean(treated)) %>% 
   ungroup()
@@ -343,20 +342,34 @@ basepay <- merge(basepay, basepaypanel_rem, by = "FAMNUM", all = F)
 #remove all those where no female householder was present at the beginning of the experiment 
 basepay <- basepay[-which(is.na(basepay$`Age Female Head...8`)), ]
 basepay <- basepay[-which(is.na(basepay$`Age Female Head...97`)), ]
+basepay$incbracket <- as.factor(basepay$incbracket) 
+
+#femhome, a variable indicating if the female householder is not participating in the 
+#labor market 
+
+
 
 #rename the variables we will use to shorten them 
 names(basepay)
 
-
-basepay <- basepay %>% rename(FSI = `Fam Size (x100)`
+basepay <- basepay %>% rename(FSI = `Fam Size (x100)`,
                               NumChild = `Num Child`,
+                              NumAdults = `Num Adults`,
                               numvehic = `Num Vehic`, valvehic = `Val Vehic`, hmown = `Home Own`, 
-                              age = `Age Female Head...97`
-                              totfaminc = `Tot Fam Inc 74`) 
+                              age = `Age Female Head...97`, femhome =`Labor participation (female)`,
+                              yrschf = `Years of schooling (female)`, fill = `Ill Disabled? (female)`, 
+                              finsch = `In School (female)`,
+                              MAGE = `Age Male Head...96`, mill = `Ill Disabled? (male)`,
+                              minsch = `In School (male)`, yrschm = `Years of schooling (male)`,
+                              fmotheduc = `Years Sch M (female)...91`)  
 
-chout + if_birth9 + femhome + NumAdults + yrschf + fill + hmown + MAGE + mill + minsch + yrschm + fmotheduc
 
+#get the family composition data for the number of children living out of the household 
 
+familydata <- read_excel("Downloads/familydata.xlsx")
+familydata <- familydata[,c("FAMNUM...1", "chout")]
+familydata$FAMNUM <- as.factor(familydata$FAMNUM...1)
+basepay <- merge(basepay, familydata, by = "FAMNUM")
 
 
 
