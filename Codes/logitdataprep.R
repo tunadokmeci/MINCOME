@@ -2,9 +2,20 @@ library("haven")
 library("dplyr")
 library("tidyr") 
 library("tidyverse")
+library("lubridate") 
+library("data.table")
 library("foreign")
 library("haven")
+library("quantmod") 
+library("zoo")
+library("plm")
+library("gplots")
+library("stargazer")
+library("lfe")
+library("Hmisc")
 library("readxl")
+library("naniar")
+library("strex")
 
 #basepaypanel_revised.dta is the data we obtained after turning the initial data to a panel data from cross section format
 #on Stata 
@@ -138,8 +149,6 @@ basepaypanel_rem <- basepaypanel_rem %>%
 
 
 #we take only FamNum and the increase variable, and merge it with the cross section data 
-basepay <- read_excel("Downloads/base_pay.data_revised.xlsx")
-
 #some variable names are there twice, because they were asked at the baseline interview, 
 #and then again at the beginning of the payments. Some households were joined later, so we take 
 #second ones 
@@ -344,10 +353,6 @@ basepay <- basepay[-which(is.na(basepay$`Age Female Head...8`)), ]
 basepay <- basepay[-which(is.na(basepay$`Age Female Head...97`)), ]
 basepay$incbracket <- as.factor(basepay$incbracket) 
 
-#femhome, a variable indicating if the female householder is not participating in the 
-#labor market 
-
-
 
 #rename the variables we will use to shorten them 
 names(basepay)
@@ -366,10 +371,39 @@ basepay <- basepay %>% rename(FSI = `Fam Size (x100)`,
 
 #get the family composition data for the number of children living out of the household 
 
-familydata <- read_excel("Downloads/familydata.xlsx")
-familydata <- familydata[,c("FAMNUM...1", "chout")]
-familydata$FAMNUM <- as.factor(familydata$FAMNUM...1)
-basepay <- merge(basepay, familydata, by = "FAMNUM")
+familydata <- read_excel("familydata.xlsx")
+familydata  <- familydata %>% rename(FAMNUM = FAMNUM...1)  
+familydata <- familydata %>%
+  dplyr::select("", "chout")
+
+stata.merge <- function(x,y, by = intersect(names(x), names(y))){
+  
+  x[is.na(x)] <- Inf
+  y[is.na(y)] <- Inf
+  
+  matched <- merge(x, y, by.x = by, by.y = by, all = TRUE)
+  matched <- matched[complete.cases(matched),]
+  matched$merge <- "matched"
+  master <- merge(x, y, by.x = by, by.y = by, all.x = TRUE)
+  master <- master[!complete.cases(master),]
+  master$merge <- "master"
+  using <- merge(x, y, by.x = by, by.y = by, all.y = TRUE)
+  using <- using[!complete.cases(using),]
+  using$merge <- "using"
+  
+  df <- rbind(matched, master,using)
+  df[sapply(df, is.infinite)] <- NA
+  df
+}
+
+basepay <- stata.merge(familydata, basepay, by = "FAMNUM")
+basepay <- basepay[-which(basepay$merge == "master"), ]
+basepay[basepay == -9] <- NA
+basepay$chout[is.na(basepay$chout)] <- 0
+
+saveRDS(basepay, "basepay.rds")
+
+
 
 
 
