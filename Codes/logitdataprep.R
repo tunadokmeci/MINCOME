@@ -414,6 +414,50 @@ basepay$NumChild <- as.factor(basepay$NumChild)
 basepay$NumAdults <- as.factor(basepay$NumAdults)
 basepay$chout <- as.factor(basepay$chout)
 
+basepay$age1519 <- 0
+basepay$age1519[basepay$age == 15 | basepay$age == 16 | basepay$age == 17 |
+                  basepay$age == 18 | basepay$age == 19  ] <- 1
+
+
+basepay$age2024 <- 0 
+basepay$age2024[basepay$age == 20 | basepay$age == 21 | basepay$age == 22 |
+                  basepay$age == 23 | basepay$age == 24  ] <- 1
+
+
+basepay$age2429 <- 0 
+basepay$age2429[basepay$age == 24 | basepay$age == 25 | basepay$age == 26 |
+                  basepay$age == 27 | basepay$age == 28  ] <- 1
+
+basepay$age3034 <- 0 
+basepay$age3034[basepay$age == 30 | basepay$age == 31 | basepay$age == 32 |
+                  basepay$age == 33 | basepay$age == 34  ] <- 1
+
+
+
+basepay$age3539 <- 0
+basepay$age3539[basepay$age == 35 | basepay$age == 36 | basepay$age == 37 |
+                  basepay$age == 38 | basepay$age == 39  ] <- 1
+
+basepay$age4044 <- 0 
+basepay$age4044[basepay$age == 40 | basepay$age == 41 | basepay$age == 42 |
+                  basepay$age == 43 | basepay$age == 44  ] <- 1 
+
+
+basepay$age4550 <- 0 
+basepay$age4550[basepay$age == 45 | basepay$age == 46 | basepay$age == 47 |
+                  basepay$age == 48 | basepay$age == 49  ] <- 1 
+
+
+#dummies indicating change from two householders to one, and vice versa 
+basepay$DH <- basepay$`Double Head = 1...94`
+basepay$SH <- basepay$`Single Head = 1...95` == 1
+
+basepay$changeDHSH = 0
+basepay$changeDHSH[basepay$`Double Head = 1...5` == 1 | basepay$`Single Head = 1...95` == 1] <- 1 
+basepay$changeSHDH = 0
+basepay$changeSHDH[basepay$`Single Head = 1...6` == 1 | basepay$`Double Head = 1...94` == 1] <- 1 
+changeDHSH
+
 saveRDS(basepay, "basepay.rds")
 
 
