@@ -2,20 +2,11 @@ library("haven")
 library("dplyr")
 library("tidyr") 
 library("tidyverse")
-library("lubridate") 
-library("data.table")
 library("foreign")
 library("haven")
-library("quantmod") 
-library("zoo")
-library("plm")
-library("gplots")
 library("stargazer")
-library("lfe")
-library("Hmisc")
 library("readxl")
-library("naniar")
-library("strex")
+library("fastDummies")
 
 #basepaypanel_revised.dta is the data we obtained after turning the initial data to a panel data from cross section format
 #on Stata 
@@ -401,6 +392,9 @@ basepay <- stata.merge(familydata, basepay, by = "FAMNUM")
 basepay <- basepay[-which(basepay$merge == "master"), ]
 basepay[basepay == -9] <- NA
 basepay$chout[is.na(basepay$chout)] <- 0
+basepay$valvehic[is.na(basepay$valvehic)] <- 0
+basepay$numvehic[is.na(basepay$numvehic)] <- 0
+basepay$yrschf[is.na(basepay$yrschf)] <- 0
 
 basepay$hmown <- as.factor(basepay$hmown)
 basepay$mill <- as.factor(basepay$mill)
@@ -456,7 +450,15 @@ basepay$changeDHSH = 0
 basepay$changeDHSH[basepay$`Double Head = 1...5` == 1 | basepay$`Single Head = 1...95` == 1] <- 1 
 basepay$changeSHDH = 0
 basepay$changeSHDH[basepay$`Single Head = 1...6` == 1 | basepay$`Double Head = 1...94` == 1] <- 1 
-changeDHSH
+
+basepay <- fastDummies::dummy_columns(basepay, select_columns = "plan")
+
+
+#dummies for female householder's mother's education 
+basepay$edlevelmoth <- 0
+basepay$edlevelmoth[basepay$fmotheduc < 9] <- 1
+basepay$edlevelmoth[basepay$fmotheduc > 9] <- 2
+basepay$edlevelmoth[is.na(basepay$fmotheduc)] <- NA
 
 saveRDS(basepay, "basepay.rds")
 
