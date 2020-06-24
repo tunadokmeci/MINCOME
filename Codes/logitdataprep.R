@@ -366,7 +366,8 @@ basepay <- basepay %>% rename(FSI = `Fam Size (x100)`,
                               finsch = `In School (female)`,
                               MAGE = `Age Male Head...96`, mill = `Ill Disabled? (male)`,
                               minsch = `In School (male)`, yrschm = `Years of schooling (male)`,
-                              fmotheduc = `Years Sch M (female)...91`)  
+                              fmotheduc = `Years Sch M (female)...91`, 
+                               'Finished high school (male)')  
 
 
 #get the family composition data for the number of children living out of the household 
@@ -400,6 +401,18 @@ basepay <- stata.merge(familydata, basepay, by = "FAMNUM")
 basepay <- basepay[-which(basepay$merge == "master"), ]
 basepay[basepay == -9] <- NA
 basepay$chout[is.na(basepay$chout)] <- 0
+
+basepay$hmown <- as.factor(basepay$hmown)
+basepay$mill <- as.factor(basepay$mill)
+basepay$minsch <- as.factor(basepay$minsch)
+basepay$femhome <- as.factor(basepay$femhome)
+basepay$fill <- as.factor(basepay$fill)
+basepay$finsch <- as.factor(basepay$finsch)
+basepay$'Double Head = 1...94' <- as.factor(basepay$'Double Head = 1...94')
+basepay$'Single Head = 1...95' <- as.factor(basepay$'Single Head = 1...95')
+basepay$NumChild <- as.factor(basepay$NumChild)
+basepay$NumAdults <- as.factor(basepay$NumAdults)
+basepay$chout <- as.factor(basepay$chout)
 
 saveRDS(basepay, "basepay.rds")
 
