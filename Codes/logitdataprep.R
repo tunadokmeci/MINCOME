@@ -366,7 +366,7 @@ basepay <- basepay %>% rename(FSI = `Fam Size (x100)`,
 familydata <- read_excel("familydata.xlsx")
 familydata  <- familydata %>% rename(FAMNUM = FAMNUM...1)  
 familydata <- familydata %>%
-  dplyr::select("", "chout")
+  dplyr::select("FAMNUM", "chout")
 
 stata.merge <- function(x,y, by = intersect(names(x), names(y))){
   
@@ -402,8 +402,8 @@ basepay$minsch <- as.factor(basepay$minsch)
 basepay$femhome <- as.factor(basepay$femhome)
 basepay$fill <- as.factor(basepay$fill)
 basepay$finsch <- as.factor(basepay$finsch)
-basepay$'Double Head = 1...94' <- as.factor(basepay$'Double Head = 1...94')
-basepay$'Single Head = 1...95' <- as.factor(basepay$'Single Head = 1...95')
+basepay$DH <- as.factor(basepay$'Double Head = 1...94')
+basepay$SH <- as.factor(basepay$'Single Head = 1...95')
 basepay$NumChild <- as.factor(basepay$NumChild)
 basepay$NumAdults <- as.factor(basepay$NumAdults)
 basepay$chout <- as.factor(basepay$chout)
