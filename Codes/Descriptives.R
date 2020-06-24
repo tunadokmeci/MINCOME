@@ -153,4 +153,5 @@ label(data_desc$if_birth9) <- "If there has been birth in the first nine months"
 
 compare = compareGroups::compareGroups(treated ~ ., data = data_desc,
                                        max.ylev = 50 )
+export2latex(createTable(compare))
 
