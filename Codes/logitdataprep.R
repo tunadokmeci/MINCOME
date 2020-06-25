@@ -11,7 +11,7 @@ library("fastDummies")
 #basepaypanel_revised.dta is the data we obtained after turning the initial data to a panel data from cross section format
 #on Stata 
 
-basepaypanel <- read_dta("Downloads/basepaypanel_revised.dta")
+basepaypanel <- read_dta("https://github.com/tunadokmeci/MINCOME/blob/master/Data/Raw%20Data/basepaypanel_revised.dta")
 basepaypanel[basepaypanel == -9] <- NA
 basepaypanel[basepaypanel == -7] <- NA
 basepaypanel[basepaypanel == -1] <- NA
@@ -143,7 +143,7 @@ basepaypanel_rem <- basepaypanel_rem %>%
 #some variable names are there twice, because they were asked at the baseline interview, 
 #and then again at the beginning of the payments. Some households were joined later, so we take 
 #second ones 
-basepay <- read_excel("Downloads/base_pay.data_revised.xlsx", 
+basepay <- read_excel("https://github.com/tunadokmeci/MINCOME/blob/master/Data/Raw%20Data/base_pay.data_revised.xlsx", 
                       col_types = c("numeric", "numeric", "numeric", 
                                     "numeric", "numeric", "numeric", 
                                     "numeric", "numeric", "numeric", 
@@ -363,7 +363,7 @@ basepay <- basepay %>% rename(FSI = `Fam Size (x100)`,
 
 #get the family composition data for the number of children living out of the household 
 
-familydata <- read_excel("familydata.xlsx")
+familydata <- read_excel("https://github.com/tunadokmeci/MINCOME/blob/master/Data/Raw%20Data/familydata-1.xlsx")
 familydata  <- familydata %>% rename(FAMNUM = FAMNUM...1)  
 familydata <- familydata %>%
   dplyr::select("FAMNUM", "chout")
@@ -456,10 +456,6 @@ basepay$edlevelmoth <- 0
 basepay$edlevelmoth[basepay$fmotheduc < 9] <- 1
 basepay$edlevelmoth[basepay$fmotheduc > 9] <- 2
 basepay$edlevelmoth[is.na(basepay$fmotheduc)] <- NA
-
-saveRDS(basepay, "basepay.rds")
-
-
 
 
 
