@@ -10,8 +10,8 @@ library("fastDummies")
 
 #basepaypanel_revised.dta is the data we obtained after turning the initial data to a panel data from cross section format
 #on Stata 
-
-basepaypanel <- read_dta("https://github.com/tunadokmeci/MINCOME/blob/master/Data/Raw%20Data/basepaypanel_revised.dta")
+basepaypanel <- "https://github.com/tunadokmeci/MINCOME/blob/master/Data/Raw%20Data/basepaypanel_revised.dta"
+basepaypanel <- read_dta(basepaypanel)
 basepaypanel[basepaypanel == -9] <- NA
 basepaypanel[basepaypanel == -7] <- NA
 basepaypanel[basepaypanel == -1] <- NA
