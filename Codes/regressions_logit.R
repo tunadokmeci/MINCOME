@@ -47,9 +47,6 @@ stargazer(reg4)
 reg5 <- glm(formula = formula5, 
             family = binomial(link = "logit"), data = basepay)
 
-summary(reg5, apply.coef = exp)
-
-
 reg6 <- glm(formula = formula6, 
             family = binomial(link = "logit"), data = basepay)
 
