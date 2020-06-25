@@ -391,10 +391,7 @@ stata.merge <- function(x,y, by = intersect(names(x), names(y))){
 basepay <- stata.merge(familydata, basepay, by = "FAMNUM")
 basepay <- basepay[-which(basepay$merge == "master"), ]
 basepay[basepay == -9] <- NA
-basepay$chout[is.na(basepay$chout)] <- 0
-basepay$valvehic[is.na(basepay$valvehic)] <- 0
-basepay$numvehic[is.na(basepay$numvehic)] <- 0
-basepay$yrschf[is.na(basepay$yrschf)] <- 0
+
 
 basepay$hmown <- as.factor(basepay$hmown)
 basepay$mill <- as.factor(basepay$mill)
@@ -406,7 +403,7 @@ basepay$DH <- as.factor(basepay$'Double Head = 1...94')
 basepay$SH <- as.factor(basepay$'Single Head = 1...95')
 basepay$NumChild <- as.factor(basepay$NumChild)
 basepay$NumAdults <- as.factor(basepay$NumAdults)
-basepay$chout <- as.factor(basepay$chout)
+basepay$FSI <- as.factor(basepay$FSI)
 
 basepay$age1519 <- 0
 basepay$age1519[basepay$age == 15 | basepay$age == 16 | basepay$age == 17 |
