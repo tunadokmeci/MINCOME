@@ -3,6 +3,7 @@ library ("readr")
 library(dplyr)
 library("tidyr")
 library("DAMisc")
+library(fastDummies)
 #increases in the number of children 
 basepaypanel <- read_dta("Downloads/basepaypanel_revised.dta")
 basepaypanel[basepaypanel == -9] <- NA
@@ -544,3 +545,21 @@ datapp$decade[datapp$year == 1960  |datapp$year ==1961  |datapp$year ==1962 |dat
 datapp$decade[datapp$year == 1970  |datapp$year ==1971 |datapp$year ==1972 |datapp$year ==1973
               |datapp$year == 1974  | datapp$year ==1975 |datapp$year ==1976
               |datapp$year ==1977] <- "70s"
+
+
+#Adding the plan information for all years
+datapp <- datapp %>% arrange(desc(OID,year))
+treat = NA
+fem = datapp$OID[1]
+for (i in 1:dim(datapp)[1]){
+  if (!is.na(datapp$plan[i])){
+    treat = datapp$plan[i]
+    fem = datapp$OID[i]
+  }
+  else if (is.na(datapp$plan[i]) && datapp$OID[i] == fem){
+    datapp$plan[i] = treat
+  }
+}
+
+
+datapp <- datapp %>% arrange(OID, year)
